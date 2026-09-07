@@ -6,7 +6,7 @@
 # Co-authored: aeoess + QueBallSharken + douglasborthwick-crypto + MoltyCel + invited WG.
 # License: Apache-2.0
 
-version: "0.1.0"
+version: "0.2.0"
 status: "draft - open for WG review"
 
 # ─────────────────────────────────────────────────
@@ -17,46 +17,395 @@ status: "draft - open for WG review"
 # ─────────────────────────────────────────────────
 signal_types:
   wallet_state:
+    status: proposed
+    review_by: "2026-09-23"
+    promotion_trigger: 'A second independent implementation meeting the CONTRIBUTING criteria: independent maintainership, independent codebase, compatible emitted artifact, and a published fixture or conformance vector.'
     definition: "Foundation-layer wallet attestation: balances, on-chain holdings, identity attachments."
     issuers_in_production: ["InsumerAPI"]
 
   behavioral_trust:
+    status: canonical
     definition: "Scored trust assessment derived from observed agent behavior over time."
-    issuers_in_production: ["RNWY", "MolTrust"]
+    issuers_in_production: ["MolTrust", "AgentLair"]
     notes: "Per @douglasborthwick-crypto: canonical name is `behavioral_trust`, NOT `behavioral_fingerprint`. Fingerprint implies passive observation; trust implies scored assessment. Distinct primitives."
 
   wallet_intelligence:
+    status: reserved
+    review_by: "2026-09-23"
+    note: 'No production implementation. Default action at review_by: removal unless a production implementation surfaces.'
     definition: "Behavioral classification of wallet activity (sybil signals, volume patterns, sanctions proximity)."
-    issuers_in_production: ["RNWY"]
+    issuers_in_production: []
+    notes: "RNWY removed 2026-05-02 — RNWY's crosswalk (`crosswalk/rnwy.yaml`, maintainer-confirmed 2026-04-14) maps `peer_review` only, not `wallet_intelligence`. No verified production issuer remains. Canonical status under review per the 2-implementation threshold in CONTRIBUTING.md."
 
   reasoning_integrity:
+    status: reserved
+    review_by: "2026-09-23"
+    note: 'No production implementation. Default action at review_by: removal unless a production implementation surfaces.'
     definition: "Attestation surface = the action, not the actor. Wallet-agnostic by design."
-    issuers_in_production: ["ThoughtProof"]
+    issuers_in_production: []
+    notes: "Day 79 audit (2026-05-05): ThoughtProof removed from issuers_in_production. No GitHub issue, PR, or thread engagement on this repo. No crosswalk file. Status downgraded from canonical to proposed per CONTRIBUTING.md 2-implementation threshold; will be canonicalized when verifiable production issuers surface."
 
   compliance_risk:
+    status: reserved
+    review_by: "2026-09-23"
+    note: 'No production implementation. Default action at review_by: removal unless a production implementation surfaces.'
     definition: "Scored exposure assessment (counterparty flagged or clean). NOT a positive credential."
-    issuers_in_production: ["Revettr"]
-    notes: "Per @douglasborthwick-crypto: distinct from `compliance_credential`. Credential = holder possesses X. Risk = scored exposure. Keep both as distinct terms; do not collapse."
+    issuers_in_production: []
+    notes: "Per @douglasborthwick-crypto: distinct from `compliance_credential`. Credential = holder possesses X. Risk = scored exposure. Keep both as distinct terms; do not collapse. Day 79 audit (2026-05-05): Revettr removed from issuers_in_production. PR #4 explicitly descoped Revettr from wallet_state earlier; no engagement on compliance_risk after that. No crosswalk file. Status downgraded to proposed per CONTRIBUTING.md 2-implementation threshold."
+
+  governance_attestation:
+    status: canonical
+    definition: "Signed attestation that an agent or action satisfied a declared governance requirement (policy, delegation scope, compliance check, etc.). Distinct from compliance_risk (scored exposure) and trust_verification (identity layer status)."
+    issuers_in_production: ["AgentNexus", "Nobulex", "SINT", "APS"]
+    notes: "Canonicalized Apr 15 after 3 independent implementations surfaced. Per CONTRIBUTING.md threshold (2+ implementations). APS added Apr 17 as 4th production issuer via Build D2 signed trust profile endpoint (gateway.aeoess.com/api/v1/public/trust/:agentId, verified against gateway JWKS)."
+    descriptor_dimensions:
+      enforcement_class: binding
+      validity_temporal: at_issuance
+      refusal_authority: issuer
+      invariant_survival: post_action
+      replay_class: full_replay
+      governed_action_class: publish
 
   passport_grade:
+    status: proposed
+    review_by: "2026-09-23"
+    promotion_trigger: 'A second independent implementation meeting the CONTRIBUTING criteria: independent maintainership, independent codebase, compatible emitted artifact, and a published fixture or conformance vector.'
     definition: "Composite trust grade from agent passport issuance evidence."
     issuers_in_production: ["APS"]
+    notes: "Single-issuer (APS) as of 2026-05-02. Status downgraded from canonical to proposed per CONTRIBUTING.md 2-implementation threshold; will be canonicalized when a second independent implementation surfaces. APS implementation: passport-grade primitive in agent-passport-system v2 with grade levels 1-3."
 
   trust_verification:
+    status: canonical
     definition: "Identity layer verification status (Grade 1-3, KYC presence, principal endorsement)."
     issuers_in_production: ["AgentID", "APS"]
 
   security_posture:
+    status: proposed
+    review_by: "2026-09-23"
+    promotion_trigger: 'A second independent implementation meeting the CONTRIBUTING criteria: independent maintainership, independent codebase, compatible emitted artifact, and a published fixture or conformance vector.'
     definition: "Wallet-discoverable: signed subject is the artifact (repo, commit, output), wallet is lookup key."
     issuers_in_production: ["AgentGraph"]
 
   job_performance:
+    status: reserved
+    review_by: "2026-09-23"
+    note: 'No production implementation. Default action at review_by: removal unless a production implementation surfaces.'
     definition: "Wallet-bound assessment of completed task outcomes."
-    issuers_in_production: ["Maiat"]
+    issuers_in_production: []
+    notes: "Day 79 audit (2026-05-05): Maiat removed from issuers_in_production. PR #3 (issuer attribution swap) referenced Maiat in passing but no direct engagement, no crosswalk file, no issues or PRs filed by them. Status downgraded to proposed per CONTRIBUTING.md 2-implementation threshold."
 
   settlement_witness:
-    definition: "Wallet-discoverable: outcome attestations bound to action artifacts. Wallet-bound for post-upgrade receipts under kid `sar-prod-ed25519-03` (counterparty now inside signed bytes)."
+    status: proposed
+    review_by: "2026-09-23"
+    promotion_trigger: 'A second independent implementation meeting the CONTRIBUTING criteria: independent maintainership, independent codebase, compatible emitted artifact, and a published fixture or conformance vector.'
+    definition: >
+      Signed post-execution attestation that a settlement (a payment or value
+      exchange for a delivered resource or task) occurred and was verified
+      against its expected terms, carrying the outcome verdict. The attested
+      subject is the settlement event, not the actor. Distinct from
+      completion_ratio (aggregate completed-task metric over a window) and
+      wallet_state (holdings, not a settlement event).
+    descriptor_dimensions:
+      enforcement_class: advisory
+      validity_temporal: at_issuance
+      refusal_authority: consumer_policy
+      invariant_survival: post_action
+      replay_class: full_replay
+      governed_action_class: compose
     issuers_in_production: ["SAR"]
+    notes: |
+      Single-issuer (SAR) as of 2026-06-23. Proposed per CONTRIBUTING.md
+      2-implementation threshold; canonicalized when a second independent
+      implementation surfaces. SAR implementation: DefaultVerifier /
+      SettlementWitness signed receipts (see crosswalk/sar.yaml). This is an
+      AEOESS vocabulary term; the implementer-specific signing key and receipt
+      schema live in the crosswalk, not in this definition.
+
+  peer_review:
+    status: canonical
+    definition: >
+      Task-completion attestation signed by a delegating agent after a
+      service agent completes work. Answers: did this agent actually do
+      what it claims? Distinct from behavioral_trust (observed patterns)
+      and settlement_witness (outcome receipts) — peer_review is a
+      first-party attestation from the task delegator about the task
+      executor's delivery.
+    descriptor_dimensions:
+      enforcement_class: advisory
+      validity_temporal: at_issuance
+      refusal_authority: consumer_policy
+      invariant_survival: post_action
+      replay_class: full_replay
+      governed_action_class: delegate
+    issuers_in_production: ["Logpose", "RNWY"]
+    notes: |
+      W3C Verifiable Credentials 2.0 envelope. Ed25519 via @noble/curves.
+      did:key identity (multicodec 0xed01, base58btc). RFC 8785 JCS
+      canonicalization. npm: @logpose-dev/logpose.
+      The W3C VC IS the attestation — not a wrapper around a separate
+      payload format.
+
+      Scope note (2026-04-17): the two production implementations
+      attest at different reference points — Logpose at task completion
+      (did the executor deliver?), RNWY at reviewer credibility (are the
+      reviewers trustworthy?). The signed-envelope shape is shared; the
+      reference point is not. Implementers should declare their
+      reference point explicitly in the attestation payload. If a third
+      implementation surfaces that forces the split, a follow-up issue
+      will propose narrowing peer_review and introducing a separate
+      canonical term (e.g. reviewer_credibility) per the CONTRIBUTING.md
+      "two independent implementations" threshold applied per-primitive.
+
+  completion_ratio:
+    status: canonical
+    definition: >
+      Issuer-computed ratio of completed task delegations over a declared
+      observation window. Answers: does this agent finish what it starts?
+      Distinct from peer_review (per-task delegator-signed attestation),
+      behavioral_trust (multi-dimensional composite), and settlement_witness
+      (outcome receipts) — completion_ratio is a single aggregate metric
+      over a window, not per-task signed.
+    descriptor_dimensions:
+      enforcement_class: advisory
+      validity_temporal: windowed
+      refusal_authority: consumer_policy
+      invariant_survival: post_action
+      replay_class: fingerprint_only
+      governed_action_class: delegate
+    requires:
+      - observation_window
+      - completion_ratio_method
+    issuers_in_production: ["AgentID", "APS"]
+    notes: |
+      Two independent implementations as of 2026-04-30:
+      - AgentID: `interaction_pattern.completion_ratio`, rolling 180d,
+        strict completed/total at task level
+      - APS: `completion_ratio`, configurable observation_window
+        (default rolling 90d), strict
+
+      Cross-issuer comparability: consumers comparing completion_ratio
+      across issuers MUST verify both `completion_ratio_method` and
+      `observation_window` match before composing. A `quality_weighted`
+      ratio is not directly comparable to a `strict` ratio.
+
+      Independent of peer_review: completion_ratio answers "does this
+      agent finish what it starts?" while peer_review answers "was the
+      finished work good?" Different questions, different signals,
+      consumer composes at evaluation time.
+
+      WG resolution thread: #64. Two-issuer convergence with
+      @haroldmalikfrimpong-ops on AgentID's strict surface and
+      @douglasborthwick-crypto on the descriptor + comparability shape.
+
+  entity_continuity:
+    status: proposed
+    review_by: "2026-09-23"
+    promotion_trigger: 'A second independent implementation meeting the CONTRIBUTING criteria: independent maintainership, independent codebase, compatible emitted artifact, and a published fixture or conformance vector.'
+    proposed_by: ["SBR Protocol (crosswalk/soulboundrobots.yaml)"]
+    definition: >
+      Cryptographic proof that the same agent identity persists across an
+      infrastructure change — key rotation, host migration, execution
+      environment swap, or any event that would otherwise break identity
+      by default. Answers: is this still the same agent? Distinct from
+      behavioral_trust (earned reputation) and consent_provenance
+      (authorization chain) — entity_continuity establishes identity
+      persistence as the prior condition for both.
+    issuers_in_production: ["SBR Protocol"]
+    notes: |
+      ES256 / P-256 signed JWT. JWKS at soulboundrobots.ai/.well-known/jwks.json.
+      On-chain registration via EAS on Base.
+      EAS schema: 0xbc21ace81780fe7c494fd985b4b220698d23a79ca4f92db349209b75908519ce
+      Five migration types: owner_upgrade, maintenance_swap, emergency_evacuation,
+      employment_transfer, hot_swap. Snapshot evidence only.
+
+    descriptor_dimensions:
+      enforcement_class: advisory
+      validity_temporal: at_issuance
+      refusal_authority: consumer_policy
+      invariant_survival: post_action
+      replay_class: full_replay
+      governed_action_class: publish
+      measurement_point: mutation_boundary
+
+  cognitive_attestation:
+    status: reserved
+    review_by: "2026-09-23"
+    note: 'No production implementation. Default action at review_by: removal unless a production implementation surfaces.'
+    proposed_by: ["AEOESS"]
+    definition: >
+      Signed commitment to a structural property of an agent's reasoning
+      state at decision time, under a declared reduction map and
+      faithfulness scope. Answers: what cognitive content did the agent
+      commit to using at this decision, and at what determinability class?
+      Distinct from reasoning_integrity (scoped to actions, wallet-agnostic)
+      and governance_attestation (attests that a declared governance
+      requirement was satisfied). cognitive_attestation attests to what
+      was reasoned over, not whether a policy passed.
+    issuers_in_production: []
+    notes: |
+      AEOESS-authored vocabulary primitive. Long-form rationale at
+      `docs/proposed/cognitive-attestation.md` (PR #93). Builds on the
+      Target Determinability framework by @schchit (Yuqiang Wang, JEP);
+      see origin thread aaif/project-proposals#14 comments 2026-04-23
+      and 2026-04-24. The framework remains @schchit's work; the
+      signal_type specification and the v0.1 taxonomy are AEOESS
+      contributions. The determinability criterion grounds what makes
+      an attestation faithful under a reduction map; the signal_type
+      specifies how that criterion surfaces in the vocabulary.
+
+      Specification references:
+        - Zenodo records/19646276; SSRN doi:10.2139/ssrn.6677441
+          (Pidlisnyi 2026, "Cognitive Attestation: Signing Interpretable
+          Decompositions of Latent Model State in AI Agent Governance")
+        - Zenodo records/19678205 (@schchit 2026, "Target Determinability
+          under Partial Causal Observation: A Faithful Reduction
+          Framework")
+
+      Three v0.1 determinability classes, ordered by strength of
+      commitment but not a hierarchy of correctness. The classes are
+      different attestor-verifier contracts:
+        - precondition_set: attestation commits to which preconditions
+          were available at decision time (delegation scope, policy
+          constraints, tool availability, context window).
+        - candidate_set: attestation commits to which candidate actions
+          were evaluated and which were eliminated, with elimination
+          reasons.
+        - decision_path: attestation commits to the chosen path with
+          confidence and the structured reasoning that selected it.
+
+      A signal entry carries exactly one class per envelope. Multiple
+      envelopes may compose to cover multiple classes across a session.
+
+      v0.1 schema gap: the vocabulary does not carry (F, Ω, D) at the
+      envelope level, where (F, Ω, D) refers to the reduction map,
+      faithfulness scope, and determinability class fields. A bare
+      cognitive_attestation value without the qualifier sees a
+      less-rigorous claim than the determinability criterion strictly
+      requires. Structural support for (F, Ω, D) in signed envelopes
+      is future work outside v0.1 scope.
+
+      v0.2 deferred class: pre_commit_chain (chained pre-commitments
+      emitted during reasoning, before the final decision is signed).
+      Depends on tighter integration with model generation loops than
+      current SDK/model interfaces support.
+
+      Single proposer as of 2026-05-26. Status stays proposed until a
+      second independent implementation surfaces, per CONTRIBUTING.md
+      2-implementation threshold.
+
+    descriptor_dimensions:
+      enforcement_class: advisory
+      validity_temporal: at_issuance
+      refusal_authority: consumer_policy
+      invariant_survival: post_action
+      replay_class: fingerprint_only
+      governed_action_class: publish
+      measurement_point: mutation_boundary
+
+  bilateral_receipt:
+    status: reserved
+    review_by: "2026-11-30"
+    promotion_trigger: >
+      Leaving `reserved` requires at least one QUALIFYING EMITTED crosswalk row:
+      a real receipt whose signed preimage carries `purpose`, from any
+      independent implementation, plus a published conformance vector a third party can
+      independently check — one of the four conjunctive conditions in
+      CONTRIBUTING.md's independent-implementation test, not a standalone rule.
+      Canonical status further requires a second counted implementation. No qualifying emitted evidence
+      is in the registry yet — cross-implementation convergence is reported but
+      not yet checkable from a published vector.
+    proposed_by: ["issue #81 (Track B)"]
+    definition: >
+      Two-party signed delegation receipt: a signed acknowledgment of a
+      content-addressed prior event carrying both parties' signatures over the
+      same canonicalized preimage. The bilateral property is exactly the
+      two-signature property — both the delegating party and the counterparty
+      sign that preimage, so the receipt is independently verifiable by a party
+      that resolves the implementation's declared preimage (see
+      `canonicalization`). Answers: did both parties sign off on this prior
+      event? Distinct from governance_attestation (single-issuer attestation
+      that a declared governance requirement was satisfied) and peer_review (a
+      first-party attestation from one task delegator): without both parties'
+      signatures it is not a bilateral_receipt. `covenant_binding` is a
+      registered `purpose` value of a bilateral_receipt, not a separate
+      primitive.
+    required:
+      - signatures      # both parties' signatures over the declared canonical preimage, normative
+      - action_ref      # content-addressed reference to the prior event acknowledged, normative
+      - purpose         # registered enum value, emitted and signed in the preimage, normative
+      - issued_at       # signed timestamp anchor: envelope-level issued_at OR per-signature iat, normative
+    field_contract: >
+      `required` names canonical properties, not mandatory literal wire keys.
+      An implementation may satisfy a canonical property through a semantically
+      equivalent emitted structure declared and source-grounded in its
+      crosswalk. `purpose` MUST be emitted and signed in the receipt's preimage:
+      a verifier relies on it for per-receipt routing, so it cannot be satisfied
+      by mutable registry metadata — a later crosswalk edit must not be able to
+      relabel already-signed receipts. A `partial` or `false_analog`
+      crosswalk MAY omit `purpose` when the absence of an emitted, signed purpose is
+      an explicitly documented divergence; such a row records a real but incomplete
+      correspondence and does not satisfy the promotion trigger. An `exact` or
+      `structural` mapping asserts the canonical primitive is present and MUST carry
+      `purpose`.
+    canonicalization: >
+      No single serializer is mandated. Each implementation MUST declare its
+      exact signing preimage — serializer and profile — in its crosswalk. Any
+      byte-compatibility claim between implementations requires (a) the same
+      declared profile and (b) a shared conformance vector that actually detects
+      serializer differences. Profiles are named only after their definitions
+      exist. As of this entry no shared verified canonicalization profile has
+      been published across implementations (APS emits via a legacy serializer,
+      not RFC 8785 JCS).
+    registered_purposes:
+      - delegation_revocation     # revocation acknowledgment (reserved; no emitted receipt yet)
+      - covenant_binding          # Nobulex, covenant-lifecycle state transition (per @arian-gogani); reserved pending emitted evidence
+    descriptor_dimensions:
+      enforcement_class: binding
+      validity_temporal: at_issuance
+      refusal_authority: shared
+      invariant_survival: post_action
+      replay_class: full_replay
+      governed_action_class: delegate
+    notes: |
+      Track B primitive from issue #81, held at `reserved`. No qualifying
+      emitted crosswalk row — a receipt whose signed preimage carries `purpose` —
+      exists yet: APS emits its BilateralReceipt shape via a legacy serializer
+      (not RFC 8785 JCS) and does not currently emit a `purpose` field; Nobulex
+      provides independent convergence evidence but no published checkable
+      fixture. Cross-implementation byte-match is reported but is not asserted
+      here, because it is not yet backed by a shared vector that detects
+      serializer differences under a common declared profile.
+
+      The term leaves `reserved` when at least one implementation publishes a
+      receipt that signs `purpose` in its declared preimage, with a conformance
+      vector a third party can independently check — one of the four conjunctive
+      conditions in CONTRIBUTING.md's independent-implementation test, not a
+      standalone rule. Canonical status additionally needs a second counted
+      implementation.
+
+      Purpose discriminator: registry + enum (Option B, locked by @aeoess in
+      #81). `purpose` is a normative field whose value is drawn from the
+      registered_purposes enum above. Its obligation is keyed to match strength
+      (see field_contract): an exact or structural mapping MUST declare a
+      registered purpose; a partial or false_analog mapping MAY
+      omit it when the absence of an emitted, signed purpose is a documented
+      divergence; a no_mapping row must not carry one. Whenever a purpose is
+      declared, every value must be in the enum. This is the substrate-vs-
+      primitive layering pattern (CTEF v0.3.2 §4.5.4 error_code precedent): the
+      canonical primitive defines the shape and the registry discipline;
+      crosswalks that assert the primitive is present declare the purpose
+      value(s) so downstream verifiers can route on them, and the validator
+      enforces that by match strength (scripts/validate-crosswalks.js).
+      `covenant_binding` stays locked as the
+      Nobulex purpose name per @arian-gogani; the CONTRIBUTING.md
+      purpose-discriminator decision tree lands as a separate PR per the #81
+      split.
+
+      issued_at is normative, promoted from the original draft: TTL semantics
+      need a signed timestamp anchor to distinguish a fresh receipt from a
+      replay. Implementer choice between an envelope-level `issued_at` and
+      per-signature `iat` blocks; at least one signed timestamp MUST be
+      present.
 
 # ─────────────────────────────────────────────────
 # DESCRIPTOR DIMENSIONS (per @QueBallSharken)
@@ -69,12 +418,31 @@ descriptor_dimensions:
 
   validity_temporal:
     question: "When is validity established and when must it still hold?"
-    values: ["at_issuance", "at_acceptance", "at_processing", "continuously", "sequence", "windowed"]
+    values: ["at_issuance", "at_acceptance", "at_processing", "continuously", "sequence", "windowed", "epoch"]
     notes: |
       `sequence` and `windowed` were added to support the decision_trajectory
       section (per @nanookclaw, PDR Section 8). `sequence` denotes longitudinal
       ordered records (e.g. decision_lineage); `windowed` denotes signals
       collected over an explicitly declared observation_window.
+
+      `epoch` denotes observer-relative validity: ticks on substantive state
+      transitions (implementation-defined per agent), not on every event of
+      a stream. Two verifiers of the same wall-clock window can produce
+      different counts, which is the load-bearing distinction from `sequence`
+      (event-relative, observer-invariant). Used for signals whose validity
+      should follow agent state rather than agent activity.
+
+      Substantive-transition lower bound: `epoch` ticks MUST be coarser than
+      per-call I/O events. Worked example (distributed inference): a 50-token
+      generation produces 50 `sequence` ticks but zero `epoch` ticks. The
+      agent is computing forward passes, state does not change until
+      generation completes.
+
+      Canonical layer placements: continuity (primary), identity (secondary).
+
+      Expected crosswalks include session-bound and continuity-layer epoch
+      counters in production governance frameworks. Discussion at issue #58
+      and a2aproject/A2A#1786.
 
   refusal_authority:
     question: "Where does actual refusal authority live?"
@@ -92,6 +460,230 @@ descriptor_dimensions:
     question: "What class of action is being governed?"
     values: ["read", "write", "transfer", "delegate", "publish", "compose"]
 
+  measurement_point:
+    question: "At which lifecycle boundary is this signal evaluated?"
+    values: ["session_boundary", "mutation_boundary"]
+    notes: |
+      session_boundary: cross-session behavioral continuity (e.g. rolling-window drift)
+      mutation_boundary: invariant survival at the execution boundary, the Final
+      Refusal-Capable Boundary Event (FRCBE) framing from BBIS (Hensley, qntm#7)
+
+# ─────────────────────────────────────────────────
+# SYSTEM ATTRIBUTES (per #60 Option C)
+# Crosscutting cryptographic properties declared once per system in each
+# crosswalk file. Distinct from descriptor_dimensions (governance-force
+# properties of a signal) and context_dimensions (per-evaluation values).
+# A verifier filtering on any one of these without the others yields an
+# incomplete view of what the system can actually validate — the three
+# attributes compose.
+# ─────────────────────────────────────────────────
+system_attributes:
+  signature_capability:
+    question: "What signature scheme(s) does this system emit?"
+    values: ["classical", "post_quantum", "composite"]
+    notes: |
+      classical: pre-PQC algorithms (Ed25519, ECDSA, RSA).
+      post_quantum: NIST PQC standards (ML-DSA, SLH-DSA).
+      composite: dual-signing under classical + post_quantum (e.g., Ed25519 + ML-DSA-65).
+
+      Crosswalks declare this once at the system level. Per-signal overrides
+      are possible but should be the exception, not the rule.
+
+      Production implementations: Nobulex (#60, 2026-05-01), SAR (#60, 2026-05-03).
+      Audit retention horizons under EU AI Act Article 12 (10+ years) make
+      signature_capability a verifier-facing filter rather than implementer detail.
+
+  canonicalization_profile:
+    question: "What canonicalization rule does this system apply before signing?"
+    values: ["jcs-rfc-8785", "dcp-jcs-v1", "json-canonical-2008", "implementation-defined"]
+    notes: |
+      Two systems declaring identical signature_capability with different
+      canonicalization profiles will not produce byte-equal signatures over
+      the same JSON. This incompleteness is a schema-level invariant, not
+      something to reconstruct downstream.
+
+      jcs-rfc-8785: RFC 8785 JSON Canonicalization Scheme (most common).
+      dcp-jcs-v1: DCP-AI variant declared in crosswalk/dcp-ai.yaml.
+      json-canonical-2008: legacy.
+      implementation-defined: declare the rule in the crosswalk's `notes` field.
+
+      Production implementations: SAR (RFC 8785), DCP-AI (dcp-jcs-v1), APS (RFC 8785).
+
+  hash_family:
+    question: "What hash family does this system use in its signature pipeline?"
+    values: ["sha-256", "sha-384", "sha-512", "sha3-256", "blake2b", "blake3"]
+    notes: |
+      Signature schemes pair with hash families in known-coherent ways
+      (Ed25519 with SHA-512 internally; verifier-visible hash for envelope
+      digests is independent and varies). This attribute records the
+      verifier-visible hash, not the internal signature hash.
+
+      Production implementations: SAR (sha-256), APS (sha-256), Nobulex (sha-256).
+
+# ─────────────────────────────────────────────────
+# CONTEXT DIMENSIONS (per @pshkv + @tomjwxf + #26 convergence)
+# Values the evaluator derives or accumulates at decision time, whether or
+# not any issuer was involved. Distinct from signal_types (issuer-signed)
+# and descriptor_dimensions (governance-force properties of a signal).
+# The test that keeps this section from drifting back into signal semantics:
+# if an issuer could sign it, it belongs in signal_types instead.
+# v0.1 draft, 4 day-1 entries. resolution_source enum is recommended (not
+# required) in v0.1 — fields are documented at each entry but entries may
+# be published without one and add it in v0.2 without a breaking change.
+# For dimensions where the resolution source varies per evaluation (notably
+# physical_environment_state), the field at the definition level records
+# the most common path; the actual resolution source travels on each
+# per-evaluation value. See note under physical_environment_state.
+# ─────────────────────────────────────────────────
+context_dimensions:
+  counterparty_standing:
+    definition: >
+      Per-evaluation context value capturing the standing of the counterparty
+      to a proposed action. Policy engines compose it from multiple signed
+      signals (wallet account age, KYC tier, prior-completion count,
+      jurisdiction) plus unsigned request context to gate commitment-class
+      actions on counterparty maturity.
+    non_signal_test: >
+      No single issuer can sign counterparty_standing because the value is
+      derived at evaluation time from a composition of multiple signed
+      signals plus unsigned runtime context. An issuer can sign a
+      contributing signal (e.g. wallet_state.account_age, peer_review
+      completion record) but not the composed standing.
+    implementations:
+      - "protect-mcp (Cedar context attribute)"
+    example_fields:
+      - "context.counterparty_account_age_days"
+      - "context.counterparty_completion_count"
+      - "context.counterparty_kyc_tier"
+    composing_signals_examples:
+      - wallet_state
+      - trust_verification
+      - peer_review
+      - settlement_witness
+    resolution_source: signal_composed
+    notes: |
+      First-impl seeded via protect-mcp Cedar policies (tomjwxf). Second
+      implementation required before canonical promotion per the same 2+
+      rule used for signal_types.
+
+  request_origin:
+    definition: >
+      Per-evaluation context value capturing where the request arrived
+      through at decision time: direct vs relay, trusted vs untrusted
+      boundary, internal-network vs public-network origin, jurisdiction
+      of arrival point. Derived by the gateway or resolver at request time,
+      not attested by any issuer.
+    non_signal_test: >
+      No issuer can sign request_origin because the value is a property of
+      the request arrival event itself. An issuer could sign a policy that
+      consumes request_origin (e.g. "require trusted-boundary for transfer
+      actions") but cannot pre-attest the origin of a future request.
+    implementations:
+      - "protect-mcp (Cedar context attribute)"
+      - "SINT runtime (boundary-security evaluation)"
+    example_fields:
+      - "context.request_source"
+      - "context.request_channel"
+      - "context.arrival_boundary"
+      - "context.origin_jurisdiction"
+    resolution_source: gateway_derived
+    notes: |
+      Cross-implementation convergence from protect-mcp Cedar policies
+      (tomjwxf, boundary-security patterns) and SINT runtime (pshkv,
+      network-boundary enforcement). Two-impl threshold potentially already
+      met; defer canonical promotion until the resolution_source field is
+      settled for the section as a whole.
+
+  session_dynamics:
+    definition: >
+      Per-evaluation context value capturing facts about the live
+      interaction session: session age, cumulative tool calls in session,
+      prior denials in session, retry depth, whether escalation has
+      already triggered in-session. Accumulated by the gateway over the
+      session lifetime, not attested by any issuer.
+    non_signal_test: >
+      No issuer can sign session_dynamics because the values exist only
+      within a session boundary and are not persisted or attested outside
+      that boundary. Distinguishes this from counterparty_standing, which
+      also composes multiple inputs but persists across sessions.
+    implementations:
+      - "protect-mcp (Cedar context attribute)"
+      - "SINT runtime (session-scoped enforcement)"
+    example_fields:
+      - "context.session_tool_count"
+      - "context.prior_deny_count"
+      - "context.retry_depth"
+      - "context.session_age_seconds"
+      - "context.escalated_to_human"
+    resolution_source: gateway_accumulated
+    notes: |
+      Key distinguishing property vs counterparty_standing is ephemerality:
+      session_dynamics values live and die within the session boundary.
+      Defining-contributor framing from pshkv: "values the enforcement
+      surface itself accumulates, whether or not any issuer was involved."
+
+  physical_environment_state:
+    definition: >
+      Per-evaluation context value capturing physical-world state at
+      decision time: temperature, velocity, force, geofence status,
+      human proximity, interlock state, permit state. Sourced from
+      sensors or physical attestors; evaluated by policy engines in
+      cyber-physical contexts (robots, vehicles, industrial systems,
+      cold chain).
+    non_signal_test: >
+      No issuer can sign physical_environment_state because the value
+      changes by the second and is a property of the physical world at
+      the moment of evaluation, not an attestable claim about past
+      state. A sensor can sign a reading of the state at a point in
+      time, but the dimension itself is the live value consumed at
+      decision time.
+    implementations:
+      - "SINT runtime (DynamicEnvelopePlugin)"
+      - "ScopeBlind cold chain attestation (ATECC608B secure element signing Ed25519 receipts)"
+    example_fields:
+      - "context.current_temperature_c"
+      - "context.shock_g"
+      - "context.gps_within_geofence"
+      - "context.human_detected"
+      - "context.interlock_state"
+      - "context.permit_state"
+      - "context.velocity_mps"
+    resolution_source: sensor_attested
+    notes: |
+      Completes the day-1 set as the only dimension the digital-native
+      entries don't cover. SINT's DynamicEnvelopePlugin evaluating
+      `min(token.maxVelocityMps, obstacle_distance × reaction_factor)`
+      per action is the cyber-physical analog of Cedar's
+      `counterparty_account_age_days < 30` — both are context dimensions
+      derived at evaluation time from sensor or signal input plus
+      policy-level constraint.
+
+      Per-evaluation resolution: for this dimension specifically, the
+      resolution source varies by which sub-field is read. Temperature
+      readings typically resolve as `sensor_attested`, geofence status
+      typically as `gateway_derived` (GPS fix + policy-zone lookup),
+      human_proximity varies by deployment. The `sensor_attested` value
+      at the definition level records the most common path; producers
+      should carry the actual per-field resolution_source on the
+      evaluated value when it differs. Defining-contributor framing
+      from @pshkv on #26.
+
+# resolution_source enum (v0.1 — recommended, not required per pshkv feedback on #26):
+#   gateway_derived      — gateway computes at request time (no persistence, no signing)
+#   gateway_accumulated  — gateway accumulates over session lifetime
+#   signal_composed      — derived from one or more signed signals at eval time
+#   sensor_attested      — from signed sensor readings (physical contexts)
+#   agent_reported       — agent self-reports (weakest trust mode, reserved for cases where no other resolution is available)
+#
+# v0.2 consideration: pshkv's alternative 4-value partition
+# (agent | gateway | external_attestor | infrastructure) collapses
+# gateway_derived + gateway_accumulated into `gateway`, splits
+# `external_attestor` from `infrastructure` (TEE/secure-element), and
+# treats `signal_composed` as derivative. If the v0.1 5-value partition
+# surfaces ambiguities in production use, the 4-value alternative is
+# the documented fallback for v0.2. Tracked on #26 for the v0.2 cycle.
+
+
 # ─────────────────────────────────────────────────
 # CROSSWALK MATCH SEMANTICS (per @QueBallSharken)
 # Crosswalks MUST express partial match, not force clean mapping.
@@ -103,10 +695,54 @@ crosswalk_match_types:
     definition: "Same primitive shape, different field names."
   partial:
     definition: "Overlapping but not equivalent. Specify dimensions of divergence."
-  non_equivalent_similar_label:
-    definition: "Looks similar lexically but governance semantics differ. MUST be explicit."
+  false_analog:
+    definition: "Answers a different governance question, and is close enough that a
+      consumer could plausibly wire it up as the canonical primitive. The mapping
+      relationship is what is false, not the target primitive: treating this as an
+      analog would create a false equivalence. MUST be explicit. Where the question
+      differs without that substitution hazard, use no_mapping."
   no_mapping:
     definition: "No analog in target system. Honest gap."
+
+# Deprecated INPUT ALIAS, per issue #153. `non_equivalent_similar_label` was the
+# former spelling of `false_analog`. It is accepted on input, normalized before
+# any semantic consumer sees it, and warned about. It is deliberately NOT a
+# member of crosswalk_match_types above: two live spellings for one concept is
+# its own drift source, and generated or public output never emits it.
+crosswalk_match_type_aliases:
+  non_equivalent_similar_label: false_analog
+
+# Evidence state is ORTHOGONAL to match type. Match type answers how closely the
+# target primitive corresponds. Evidence state answers whether the emitting
+# artifact carries the value, computes it, or points elsewhere for it.
+# A mapping can be `exact` in shape and still `inferable` in evidence.
+#
+# Applies only when match is not `no_mapping`. Optional; absent means
+# `unspecified`, and unspecified is never upgraded to `emitted` by a reader.
+# Entries written before this axis existed keep their original meaning; nothing
+# is retroactively reinterpreted.
+#
+# status: proposed. This axis is introduced from a single implementation, so it
+# lands under the same bar this registry applies to any single-implementation
+# term. It is additive: consumers MUST treat an unknown evidence value as
+# `unspecified` rather than failing, so later states can be added without a
+# breaking change.
+crosswalk_evidence_states:
+  status: proposed
+  review_by: "2026-11-30"
+  promotion_trigger: >
+    Two or more crosswalks from independently maintained systems declare an
+    evidence state, and at least one declares a state other than `emitted`.
+  states:
+    emitted:
+      definition: "The artifact carries the value as a field. A verifier reads it without computing anything or fetching anything."
+      requires: ["source_path"]
+    inferable:
+      definition: "Recoverable by computation over fields the artifact does carry. The issuer never asserts the result, so the value is the consumer's computation."
+      requires: ["inferred_from", "inference_basis"]
+    referenced:
+      definition: "The artifact carries a pointer rather than the value. A verifier resolves it against state the artifact does not contain, so the answer can change without the artifact changing."
+      requires: ["resolution_path", "resolution_note"]
 
 # ─────────────────────────────────────────────────
 # DECISION TRAJECTORY (per @nanookclaw, contributed from PDR Section 8)
@@ -222,6 +858,24 @@ constraints:
       signals (trust_velocity, divergence_signal). Without an explicit
       window declaration, two issuers reporting the same divergence value
       are not actually saying the same thing.
+
+  completion_ratio_method:
+    type: signal_extension
+    values: [strict, quality_weighted]
+    default: strict
+    description: |
+      Distinguishes how an issuer computes completion_ratio. Required for
+      cross-issuer comparability — a `strict` 0.85 and a `quality_weighted`
+      0.85 are different signals.
+
+      - `strict`: completed / total at task level, no quality gate
+      - `quality_weighted`: factors in sybil signals, peer_review outcomes,
+        or other quality assessments
+
+      Issuers MAY publish completion_ratio under the strict baseline by
+      default. Issuers extending with quality_weighted MUST declare so
+      explicitly. Mixing definitions under one name is how signals lose
+      meaning across issuers.
 
 # ─────────────────────────────────────────────────
 # OUT OF SCOPE FOR v0.1

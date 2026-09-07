@@ -19,7 +19,12 @@ system:
   jwks: https://insumermodel.com/.well-known/jwks.json
   jwks_alt: https://api.insumermodel.com/v1/jwks  # same key, different URL
   role: "Foundation layer of the multi-attestation envelope. Reads on-chain wallet state across 33 chains (30 EVM + Solana + XRPL + Bitcoin) and issues ECDSA-signed evidence. Wallet binding varies by endpoint — see signal_types.wallet_state.signed_shapes below."
-  license: "Public API, key-gated. Free tier available at POST /v1/keys/create."
+  license: "Public API, key-gated. Free developer keys at https://insumermodel.com/developers/. Agent self-provisioning via POST /v1/keys/buy (USDC or BTC on-chain payment, no auth required)."
+
+license: Apache-2.0
+maintainer:
+  github: douglasborthwick-crypto
+  confirmed_at: "2026-04-10"
 
 # ─────────────────────────────────────────────────
 # SIGNAL TYPE MAPPINGS
@@ -192,7 +197,7 @@ descriptor_dimensions:
 gaps:
 
   - area: "Format-aware `wallet_state` routing"
-    note: |
+    notes: |
       InsumerAPI routes by wallet format: EVM wallets go through /v1/trust
       for the curated multi-chain profile; Solana, XRPL, and Bitcoin go
       through /v1/attest, and any format can additionally request
@@ -204,7 +209,7 @@ gaps:
       populate it as `multi_chain` with the 33-chain set referenced.
 
   - area: "`conditionHash` tamper detection"
-    note: |
+    notes: |
       /v1/attest signs a SHA-256 hash of each evaluated condition's
       parameters (`conditionHash`) alongside the boolean result. Consumers
       that submitted the conditions can recompute the hash offline and
